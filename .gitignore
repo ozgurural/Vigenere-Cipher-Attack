@@ -1,0 +1,55 @@
+#Cmake files
+cmake-build-debug/
+CMakeFiles.txt
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+
+
+# Eclipse
+.classpath
+.project
+.settings/
+ 
+# Intellij
+.idea/
+*.iml
+*.iws
+
+# VsCode
+.vscode
+
+# Mac
+.DS_Store
+ 
+# Maven
+log/
+target/
+
+#compiled source #
+###################
+*.com
+*.class
+*.exe
+*.o
+*.so
+*.so.*
+ 
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.rar
+*.tar
+*.zip
+ 
+# Logs and databases #
+######################
+*.log
+*.sqlite
+*.db
+*.pol
