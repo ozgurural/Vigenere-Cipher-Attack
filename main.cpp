@@ -6,104 +6,132 @@
 #include <iostream>
 #include <vector>
 
-std::vector <std::string> matrix;
-std::vector<std::pair<int, int>> finals;
-std::vector <int> sums;
+const int   MAX_LETTERS 	= 	26;
+std::vector <std::string> CIPHER_MATRIX;
+std::string CIPHER;
+int KEY_LENGTH;
+std::string KEY;
 
 //FREQUENCY_OF_ENGLISH_LETTERS probability of frequency of english letters
-double FREQUENCY_OF_ENGLISH_LETTERS[26] = { 0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966,
+const double FREQUENCY_OF_ENGLISH_LETTERS[MAX_LETTERS] = { 0.08167, 0.01492, 0.02782, 0.04253, 0.12702, 0.02228, 0.02015, 0.06094, 0.06966,
                      0.00153, 0.00772, 0.04025, 0.02406, 0.06749, 0.07507, 0.01929, 0.00095, 0.05987,
                      0.06327, 0.09056, 0.02758, 0.00978, 0.02360, 0.00150, 0.01974, 0.00074 };
 
 using namespace std;
 
-int main() {
-    int i = 0;
-    int j = 0;
-    int k;
-    int key_len;
-    string text;
+void get_cypher_text() {
     cout << "Enter the Cipher text:\n";
-    cin >> text;
+    cin >> CIPHER;
+    CIPHER_MATRIX.push_back(CIPHER);
+}
 
-    matrix.push_back(text);
+void guess_key_length(){
+    int maxKey = 1;
+    int count;
+    int i, j, k;
+    int freq[50] = {0};
+    std::vector <int> SUMS;
+    std::vector<std::pair<int, int>> FINAL_VALUES;
 
-    /* Guessing Key Length */
-
-    for (i = 1; i < text.length(); i++)
-        matrix.push_back(text.substr(0, text.length() - i));
-
-    for (i = 1; i < matrix.size(); i++) {
-        int count = 0;
-        for (j = matrix[i].size() - 1, k = matrix[0].size() - 1; j >= 0; j--, k--)
-            if (matrix[i][j] == matrix[0][k])
-                count++;
-        sums.push_back(count);
+    for (i = 1; i < CIPHER.length(); i++) {
+        CIPHER_MATRIX.push_back(CIPHER.substr(0, CIPHER.length() - i));
     }
-    cout << "For the given cipher text, the number of repeating letters after each shift:\n";
-    for (i = 0; i < 50; i++)
-        cout << sums[i] << " ";
+
+    for (i = 1; i < CIPHER_MATRIX.size(); i++) {
+        count = 0;
+        for (j = CIPHER_MATRIX[i].size() - 1, k = CIPHER_MATRIX[0].size() - 1; j >= 0; j--, k--) {
+            if (CIPHER_MATRIX[i][j] == CIPHER_MATRIX[0][k])
+                count++;
+        }
+        SUMS.push_back(count);
+    }
+    cout << "The number of repeating letters after each shift:\n";
+    for (i = 0; i < 50; i++) {
+        cout << SUMS[i] << " ";
+    }
     cout << "\n";
 
-    int freq[50] = {0};
-    for (i = 0; i < sums.size(); i++)
-        if (sums[i] >= text.size() / 30)
-            finals.emplace_back(sums[i], i);
+    for (i = 0; i < SUMS.size(); i++) {
+        if (SUMS[i] >= CIPHER.size() / 30) {
+            FINAL_VALUES.emplace_back(SUMS[i], i);
+        }
+    }
 
-    for (i = 1; i < finals.size(); i++)
-        freq[finals[i].second - finals[i - 1].second]++;
+    for (i = 1; i < FINAL_VALUES.size(); i++) {
+        freq[FINAL_VALUES[i].second - FINAL_VALUES[i - 1].second]++;
+    }
 
-    int max = 1;
-    for (i = 1; i < 50; i++)
-        if (freq[i] > max)
-            max = i;
-    cout << max << "\n";
+    for (i = 1; i < 50; i++) {
+        if (freq[i] > maxKey) {
+            maxKey = i;
+        }
+    }
+    cout << maxKey << "\n";
+    KEY_LENGTH = maxKey;
+}
 
-    key_len = max;
+void guess_the_key() {
+    double mul;
+    double max_mul;
+    int shift;
+    int i, j, k;
+    KEY[KEY_LENGTH];
+    for (i = 0; i < KEY_LENGTH; i++) {
+        double a[MAX_LETTERS] = {0};
 
-    /* Guessing The Key */
+        for (j = i; j < CIPHER.length(); j += KEY_LENGTH)
+            a[CIPHER[j] - 'a']++;
 
-    char Key[key_len];
-    for (i = 0; i < key_len; i++) {
-        double a[26] = {0};
-
-        for (j = i; j < text.length(); j += key_len)
-            a[text[j] - 'a']++;
-
-        for (j = 0; j < 26; j++) {
-            a[j] *= key_len;
-            a[j] = (double)a[j] / (double)text.size();
+        for (j = 0; j < MAX_LETTERS; j++) {
+            a[j] *= KEY_LENGTH;
+            a[j] = (double)a[j] / (double)CIPHER.size();
         }
         vector<pair<int, double>> allMuls;
 
-        for (j = 0; j < 26; j++) {
-            double mul = 0;
-            for (k = 0; k < 26; k++)
-                mul += FREQUENCY_OF_ENGLISH_LETTERS[k] * a[(j + k) % 26];
+        for (j = 0; j < MAX_LETTERS; j++) {
+            mul = 0;
+            for (k = 0; k < MAX_LETTERS; k++) {
+                mul += FREQUENCY_OF_ENGLISH_LETTERS[k] * a[(j + k) % MAX_LETTERS];
+            }
             allMuls.emplace_back(j, mul);
         }
-        double max_mul = allMuls[0].second;
-        int shift = 0;
-        for (j = 0; j < 26; j++) {
+        max_mul = allMuls[0].second;
+        shift = 0;
+        for (j = 0; j < MAX_LETTERS; j++) {
             if (max_mul < allMuls[j].second) {
                 max_mul = allMuls[j].second;
                 shift = j;
             }
         }
-        Key[i] = (char)(shift + 'a');
+        KEY[i] = (char)(shift + 'a');
     }
     cout << "Key: ";
-    for (j = 0; j < key_len; j++)
-        cout << Key[j];
-    cout << "\n";
-
-    //Decrypting the text
-    cout << "Decrypted text: ";
-    string plain_text = text;
-    for (i = 0; i < key_len; i++) {
-        for (j = i; j < text.length(); j += key_len)
-            plain_text[j] = (char)((plain_text[j] - Key[i] + 26) % 26 + 'a');
+    for (j = 0; j < KEY_LENGTH; j++) {
+        cout << KEY[j];
     }
-    cout << plain_text << "\n";
+    cout << "\n";
+}
+
+void decrypt_the_text() {
+    cout << "Decrypted text: ";
+    string PLAIN_TEXT = CIPHER;
+    for (int i = 0; i < KEY_LENGTH; i++) {
+        for (int j = i; j < CIPHER.length(); j += KEY_LENGTH) {
+            PLAIN_TEXT[j] = (char)((PLAIN_TEXT[j] - KEY[i] + MAX_LETTERS) % MAX_LETTERS + 'a');
+        }
+    }
+    cout << PLAIN_TEXT << "\n";
+}
+
+int main() {
+
+    get_cypher_text();
+
+    guess_key_length();
+
+    guess_the_key();
+
+    decrypt_the_text();
+
     return 0;
 }
